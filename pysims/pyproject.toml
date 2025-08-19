@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[project]
+name = "PySIMS"
+version = "0.1.1"
+dependcies = [
+	   "tatsu>=5.8",
+	   "numpy",
+	   "matplotlib",
+]
+requires-python = ">=3.10"
+authors = [
+	{ name="PlaceHolder", email="author@example.com" },
+]
+description = "SIMS data analysis package"
+readme = "README.md"
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pysims"]

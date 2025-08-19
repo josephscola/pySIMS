@@ -1,0 +1,5 @@
+INTENSITY = "I[cnt/s]"
+DEPTH = "Depth[nm]"
+TIME = "Time[s]"
+MASS = "Mass[a.m.u]"
+ENERGY = "Energy[eV]"
