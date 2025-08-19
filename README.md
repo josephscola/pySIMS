@@ -10,7 +10,7 @@ It includes:
 
 Requires python >= 3.10
 
-Dans le dossier `pySIMS`
+(in the `pysims` directory)
 ```
 pip install -r requirements.txt
 pip install .
