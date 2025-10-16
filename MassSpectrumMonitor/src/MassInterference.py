@@ -6,7 +6,6 @@ import csv
 from math import prod
 import matplotlib.ticker as ticker
 
-
 class Molecularion:
     def __init__(self, name, mass, abundance):
         self.name = name
@@ -22,12 +21,14 @@ class Molecularion:
     def dissociate_constituent_isotopes(self):
         return re.findall(r'([0-9]+[A-Za-z]*)', self.name)
     
-def generate_single_isotopes(atoms_selection):
+def generate_single_isotopes(atoms_selection, UNSTABLE_ISOTOPES = False):
     single_molecularion = []
     for elem in atoms_selection:
         for iso in element(elem).isotopes:
             if iso.abundance is not None:
                 single_molecularion.append(Molecularion(f'{iso.mass_number}{elem}', iso.mass, iso.abundance/100))
+            if iso.abundance == None and UNSTABLE_ISOTOPES:
+                single_molecularion.append(Molecularion(f'{iso.mass_number}{elem}', iso.mass, 1e10))
     return single_molecularion
 
 def generate_molecularion_combination(single_molecularion, multiplicity):
@@ -67,22 +68,22 @@ def sort_molecularion_list(molecularion_list, criteria):
 ###                FILES GESTION                 ###
 ####################################################
 
+"""
+def str2frame(estr, sep = ',', lineterm = '\n', set_header = True):
+    dat = [x.split(sep) for x in estr.strip(lineterm).split(lineterm)]
+    df = pd.DataFrame(dat)
+    if set_header:
+        df = df.T.set_index(0, drop = True).T # flip, set ix, flip back
+    return df
+"""
 
-def write_csv(liste_molecularion,path_file): # prend une liste de Molecularion et ecris un csv dans le format: nom;mass;abondance
+def molecularion_list_to_table (molecularion_list):
+    # table is a list of list ready for DataFrame conversion
+    table = [['name', 'mass', 'abundance']]
+    for molecularion in molecularion_list:
+        table.append (str (molecularion).split (','))
+    return table
 
-    with open(path_file,'w',newline='') as file_name:# pas d'entête de fichier
-        csv_file=csv.writer(file_name,delimiter=';')
-        csv_file.writerow(['name', 'mass', 'abundance'])
-        for element in liste_molecularion:
-            csv_file.writerow([element.name,element.mass,element.abundance])
-    
-def read_csv(path_file): # structure csv attendu : nom, masse, abondance
-    
-    with open(path_file,'r') as file_name:
-        data_csv= csv.reader(file_name,delimiter=';')
-        next(file_name)
-        return [Molecularion(line_csv[0],line_csv[1],line_csv[2]) for line_csv in data_csv]
-            
 def check_file_atoms_selection(path_dossier,file_name): 
     #permet de vérifier si notre sélection d'atome à déjà un fichier de combinaison existant
     file_find=False

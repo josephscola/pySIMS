@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 import matplotlib as mpl
 from operator import itemgetter, attrgetter
-from src.MassInterference import Molecularion, generate_single_isotopes, generate_molecularion_combination, write_csv, file_name_with_multiplicity
+from src.MassInterference import Molecularion, generate_single_isotopes, generate_molecularion_combination, file_name_with_multiplicity, molecularion_list_to_table
 
 debug = None
 debug_bis = False
@@ -89,11 +89,21 @@ def create_periodic_table_window(root):
                 buttons[elem] = b
                 if elem in selected_atoms:
                     b.config(relief="sunken")
+    
+    
+    
+    #ALLOW_UNSTABLE_ISOTOPES = tk.IntVar ()
+    checkUnstable = tk.Checkbutton (table_window, text = 'Allow unstable isotopes',
+                                    variable = ALLOW_UNSTABLE_ISOTOPES)#, onvalue=1, offvalue=0)
+    checkUnstable.pack (padx=10, pady=1)
 
+    
+    
     validate_button = tk.Button(table_window, text="Valider", command=table_window.destroy)
-    validate_button.pack(pady=10)
+    validate_button.pack(pady=10, padx=10)
     validate_button.pack(side="bottom", fill="x")
-
+    
+    
     return table_window
 
 
@@ -122,7 +132,7 @@ def afficher_csv():
     global selected_atoms, entry_multiplicite, csv_frame, tree
 
     if not selected_atoms:
-        messagebox.showwarning("Avertissement", "Veuillez d'abord sélectionner des atomes.")
+        messagebox.showwarning("Warning", "Please select at least one element")
         return
 
     multiplicity = slider_multiplicite.get()
@@ -131,23 +141,30 @@ def afficher_csv():
 
     file_path = path_folder + file_name_with_multiplicity(sorted(list(selected_atoms)), multiplicity)
     if debug: print(file_path)
+    
+    """
     if not os.path.exists(file_path):
-        try:
-            single_isotopes = generate_single_isotopes(selected_atoms)
-            combination_list = generate_molecularion_combination(single_isotopes, multiplicity)
-            write_csv(combination_list, file_path)
-        except Exception as e:
-            messagebox.showerror("Erreur", f"Erreur lors de la génération du fichier :\n{e}")
-            return
-
+    """
     try:
-        csv_content = pd.read_csv(file_path, delimiter=';')
+        single_isotopes = generate_single_isotopes(selected_atoms, UNSTABLE_ISOTOPES = ALLOW_UNSTABLE_ISOTOPES.get ())
+        combination_list = generate_molecularion_combination(single_isotopes, multiplicity)
+        table = molecularion_list_to_table (combination_list)
+        csv_content = pd.DataFrame (table)
+        csv_content = csv_content.T.set_index(0, drop = True).T # makes first row the index
         csv_content = csv_content.sort_values(by = "mass", ascending = True)
-
+        csv_content.to_csv (file_path, index = False)
     except Exception as e:
-        messagebox.showerror("Erreur", f"Erreur de lecture du fichier CSV :\n{e}")
+        messagebox.showerror("Error", f"Molecular ion file generation error :\n{e}")
         return
 
+
+    try:
+        csv_content = pd.read_csv(file_path, delimiter=',')
+    except Exception as e:
+        messagebox.showerror("Error", f"Molecularion file reading error :\n{e}")
+        return
+
+    
     # Nettoyer le contenu du frame CSV
     for widget in csv_frame.winfo_children():
         widget.destroy()
@@ -568,7 +585,11 @@ class GraphApp:
 
     def export(self):
 
-        self.nom_fichier_entry = 'figure_data' #Où demander le nom du fichier ?
+        if self.sims_data_x is None:
+            messagebox.showerror("Warning", 'Please load an experimental mass spectrum first')
+            return
+        
+        self.nom_fichier_entry = 'ms-monitor_figure_data' #Ou demander le nom du fichier ?
 
         self.export_path_folder = filedialog.askdirectory()
 
@@ -577,9 +598,9 @@ class GraphApp:
 
         export_file = os.path.join(self.export_path_folder, self.nom_fichier_entry + '.csv')
         if os.path.exists(export_file):
-            messagebox.showerror("Attention", 'Un fichier avec le même nom existe déjà')
+            messagebox.showerror("Warning", 'An exported figure file already exists')
             return
-
+        
         try:
             with open(export_file, 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile)
@@ -713,9 +734,10 @@ def main():
     global app, root, left_frame, center_frame, right_frame, slider_multiplicite, selected_atoms_label, csv_frame, entry_min_mass, entry_max_mass, button_linear, button_log
     #global slider_marker_size   
     global entry_aimed_intensity, entry_aimed_mass, mass_label, intensity_label, label_min_mass, label_max_mass, entry_delta, delta_label
+    global ALLOW_UNSTABLE_ISOTOPES
 
     root = tk.Tk()
-    root.title("Mass Interference Identifier")
+    root.title("Mass Spectrum Monitor")
     root.geometry("1800x1000")
 
     # Zone gauche — boutons
@@ -734,34 +756,36 @@ def main():
     right_frame.pack_propagate(False)
 
 
-    tk.Button(left_frame, text="Tableau périodique", command=open_selection).pack(pady=5, padx=10, fill="x")
-    tk.Button(left_frame, text="Afficher ions moléculaires", command=afficher_csv).pack(pady=5, padx=10, fill="x")
-    tk.Button(left_frame, text="Ouvrir un fichier de données", command=open_graph_button_command).pack(pady=5, padx=10, fill="x")
-    tk.Button(left_frame, text="Exporter les données du graphe", command=open_export_menu).pack(pady=5, padx=10, fill="x")
-    tk.Button(left_frame, text="Effacer graphique", command=erase_graph).pack(pady=5, padx=10, fill="x")
+    tk.Button(left_frame, text="Periodic table", command=open_selection).pack(pady=5, padx=10, fill="x")
+    tk.Button(left_frame, text="Molecular ions", command=afficher_csv).pack(pady=5, padx=10, fill="x")
+    tk.Button(left_frame, text="Open datafile", command=open_graph_button_command).pack(pady=5, padx=10, fill="x")
+    tk.Button(left_frame, text="Export figure", command=open_export_menu).pack(pady=5, padx=10, fill="x")
+    tk.Button(left_frame, text="Clear figure", command=erase_graph).pack(pady=5, padx=10, fill="x")
 
     scale_frame = tk.Frame(left_frame, bg="#f0f0f0")
     scale_frame.pack(pady=5, padx=10, fill="x")
-    button_linear = tk.Button(scale_frame, text="Échelle linéaire", command=fct_linear_graph)
+    button_linear = tk.Button(scale_frame, text="Linear", command=fct_linear_graph)
     button_linear.pack(side="left", expand=True, fill="x", padx=2)
-    button_log = tk.Button(scale_frame, text="Échelle logarithmique", command=fct_log_graph)
+    button_log = tk.Button(scale_frame, text="Log", command=fct_log_graph)
     button_log.pack(side="left", expand=True, fill="x", padx=2)
     button_linear.config(relief="sunken")
 
     info_frame = tk.Frame(left_frame, bg="#f0f0f0")
     info_frame.pack(pady=10, padx=10, fill="x")
 
-    label_min_mass = tk.Label(info_frame, text="Masse minimale : ")
+    ALLOW_UNSTABLE_ISOTOPES = tk.IntVar ()
+
+    label_min_mass = tk.Label(info_frame, text="Min mass : ")
     label_min_mass.pack(fill="x")
     entry_min_mass = tk.Entry(info_frame)
     entry_min_mass.pack(fill="x")
 
-    label_max_mass = tk.Label(info_frame, text="Masse maximale : ")
+    label_max_mass = tk.Label(info_frame, text="Max mass : ")
     label_max_mass.pack(fill="x")
     entry_max_mass = tk.Entry(info_frame)
     entry_max_mass.pack(fill="x")
 
-    tk.Button(info_frame, text="Valider intervalle", command=zoom_fct).pack(pady=10, padx=10, fill="x")
+    tk.Button(info_frame, text="Validate", command=zoom_fct).pack(pady=10, padx=10, fill="x")
 
     slider_multiplicite = tk.Scale(left_frame, from_=1, to=6, orient="horizontal", label="Multiplicité")
     slider_multiplicite.pack(pady=10, padx=10, fill="x")
@@ -770,28 +794,28 @@ def main():
     #slider_marker_size = tk.Scale(left_frame, from_=1, to=20, orient="horizontal", label="Taille marker")
     #slider_marker_size.pack(pady=10, padx=10, fill="x")
 
-    mass_label=tk.Label(info_frame, text='Mass visée : ')
+    mass_label=tk.Label(info_frame, text='Target mass : ')
     mass_label.pack(pady=10, padx=10)
     entry_aimed_mass = tk.Entry(info_frame)
     entry_aimed_mass.pack(fill='x')
 
-    intensity_label = tk.Label(info_frame, text="intensité visée : ")
+    intensity_label = tk.Label(info_frame, text="Target intensity : ")
     intensity_label.pack(fill="x")
     entry_aimed_intensity = tk.Entry(info_frame)
     entry_aimed_intensity.pack(fill="x")
 
-    delta_label = tk.Label(info_frame, text=' \u0394 Masse visée : ')
+    delta_label = tk.Label(info_frame, text=' \u0394 Target Mass : ')
     entry_delta = tk.Entry(info_frame)
     delta_label.pack(fill="x")
     entry_delta.pack(fill="x")    
 
-    tk.Button(info_frame, text = 'valider normalisation', command = fct_ajuster_echelle).pack(pady=10, padx=10, fill="x")
+    tk.Button(info_frame, text = 'Validate', command = fct_ajuster_echelle).pack(pady=10, padx=10, fill="x")
 
     #tk.Label(info_frame, text="Taille du marqueur").pack(fill="x")
     #entry_marker_size = tk.Entry(info_frame)
     #entry_marker_size.pack(fill="x")
 
-    tk.Button(left_frame, text="Quitter", command=close_interface).pack(pady=5, padx=10, fill="x")
+    tk.Button(left_frame, text="Quit", command=close_interface).pack(pady=5, padx=10, fill="x")
     
 
     app = GraphApp(center_frame) 
