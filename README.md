@@ -10,14 +10,14 @@ It includes:
 
 Requires python >= 3.10
 
-(in the `pysims` directory)
+From the `pysims` directory:
 ```
 pip install -r requirements.txt
 pip install .
 ```
 
-## To create the corresponding jupyter ipykernel :
- (in the `pysims` directory)
+## To create the corresponding jupyter ipykernel (optional):
+From the `pysims` directory:
 ```
 venv/bin/python3 -m ipykernel install --name=pysims-venv
 ```
@@ -28,7 +28,7 @@ sudo venv/bin/python3 -m ipykernel install --name=pysims-venv
 
 ## Using Mass_Spectrum_Monitor
 
-Run the interface from the MassSpectrumMonitor directory:
+From the  `MassSpectrumMonitor`  directory:
 ```
 python3 mass_spectrum_monitor.py
 ```
