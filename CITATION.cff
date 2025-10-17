@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+title: pysims
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Joseph
+    family-names: Scola
+    orcid: 'https://orcid.org/0000-0002-7902-9783'
+    affiliation: 'GEMaC-UMR8635, CNRS, UVSQ, Université Paris-Saclay'
+repository-code: 'https://github.com/josephscola/pySIMS.git'
+abstract: >-
+  Magnetic-sector secondary ion mass spectroscopy (MS-SIMS)
+  data analysis package.
+license: MIT
+version: '1.0'
+date-released: '2025-10-17'
