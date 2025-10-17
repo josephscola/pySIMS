@@ -10,8 +10,15 @@ It includes:
 
 Requires python >= 3.10
 
-From the `pysims` directory:
+1. Clone the current repository
+2. Make and activate a virtual environment for the installation (optional)
 ```
+python3 -m venv pysimsenv
+source pysimsenv/bin/activate
+```
+3. Move to the `pysims` directory and install the module:
+```
+cd pySIMS/pysims
 pip install -r requirements.txt
 pip install .
 ```
@@ -32,3 +39,4 @@ From the  `MassSpectrumMonitor`  directory:
 ```
 python3 mass_spectrum_monitor.py
 ```
+All generated lists of molecular ions are stored in the `MassSpectrumMonitor/molecularions` directory.

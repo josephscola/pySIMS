@@ -81,7 +81,7 @@ def molecularion_list_to_table (molecularion_list):
     # table is a list of list ready for DataFrame conversion
     table = [['name', 'mass', 'abundance']]
     for molecularion in molecularion_list:
-        table.append (str (molecularion).split (','))
+        table.append ([molecularion.name, molecularion.mass, molecularion.abundance])
     return table
 
 def check_file_atoms_selection(path_dossier,file_name): 
