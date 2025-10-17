@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "PySIMS"
-version = "0.1.1"
+version = "1.0"
 dependcies = [
 	   "tatsu>=5.8",
 	   "numpy",
